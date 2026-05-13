@@ -1,0 +1,1 @@
+ALTER TABLE public.students ADD COLUMN pickup_lat DOUBLE PRECISION, ADD COLUMN pickup_lng DOUBLE PRECISION;
