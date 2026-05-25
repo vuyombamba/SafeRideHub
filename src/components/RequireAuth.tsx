@@ -1,14 +1,12 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-
-type Role = "admin" | "operator" | "parent";
+import { useAuth, type Role } from "@/hooks/useAuth";
 
 export function RequireAuth({ children, roles }: { children: ReactNode; roles?: Role[] }) {
-  const { user, roles: userRoles, loading } = useAuth();
+  const { user, roles: userRoles, loading, rolesLoaded } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  if (loading || (user && !rolesLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-sm text-muted-foreground">Loading…</div>

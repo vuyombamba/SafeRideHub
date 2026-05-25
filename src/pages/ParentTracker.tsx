@@ -6,8 +6,11 @@ import { MapPin, Bell, Bus, Navigation, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProximityAlerts, type ProximityMatch, type NotificationPreference } from "@/hooks/useProximityAlerts";
+import { useRingingAlert } from "@/hooks/useRingingAlert";
+import { ProximityRingDialog } from "@/components/ProximityRingDialog";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { useAuth } from "@/hooks/useAuth";
+import { BottomTabs } from "@/components/parent/BottomTabs";
 
 const DEFAULT_CENTER: [number, number] = [-26.2041, 28.0473];
 const MAP_ZOOM = 13;
@@ -96,25 +99,38 @@ const ParentTracker = () => {
   }, [preferences]);
 
   useProximityAlerts(vehicles, students, handleAlert, preferences);
+  // Build per-student ring prefs from notification_preferences
+  const ringPrefsMap = preferences.reduce((acc, p: any) => {
+    acc[p.student_id] = {
+      ring_enabled: p.ring_enabled ?? true,
+      ring_volume: p.ring_volume ?? 80,
+      vibration_enabled: p.vibration_enabled ?? true,
+    };
+    return acc;
+  }, {} as Record<string, { ring_enabled: boolean; ring_volume: number; vibration_enabled: boolean }>);
+  const { active: ringingAlert, dismiss: dismissRing } = useRingingAlert(vehicles, students, 500, ringPrefsMap);
 
   // Fetch data + realtime + simulation
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      // Try to find linked students; fall back to all if none linked yet (demo data)
       const links = await supabase.from("parent_students").select("student_id").eq("parent_user_id", user.id);
       const linkedIds = (links.data ?? []).map((l) => l.student_id);
-      const studentsQuery = linkedIds.length
-        ? supabase.from("students").select("*").in("id", linkedIds)
-        : supabase.from("students").select("*");
-
-      const [v, s, p] = await Promise.all([
-        supabase.from("vehicles").select("*"),
-        studentsQuery,
+      if (linkedIds.length === 0) {
+        setStudents([]); setVehicles([]); setPreferences([]);
+        return;
+      }
+      const { data: studentRows } = await supabase.from("students").select("*").in("id", linkedIds);
+      setStudents(studentRows ?? []);
+      const routeIds = Array.from(new Set((studentRows ?? []).map((s: any) => s.route_id).filter(Boolean)));
+      const vehicleQ = routeIds.length
+        ? supabase.from("vehicles").select("*")  // RLS scopes this to vehicles the parent may see
+        : Promise.resolve({ data: [] as any[] });
+      const [v, p] = await Promise.all([
+        vehicleQ as any,
         supabase.from("notification_preferences").select("*").eq("parent_user_id", user.id),
       ]);
       if (v.data) setVehicles(v.data);
-      if (s.data) setStudents(s.data);
       if (p.data) setPreferences(p.data as NotificationPreference[]);
     };
     fetchData();
@@ -136,20 +152,7 @@ const ParentTracker = () => {
       })
       .subscribe();
 
-    const simInterval = setInterval(() => {
-      setVehicles((prev) =>
-        prev.map((v) =>
-          v.status === "en_route"
-            ? { ...v, lat: v.lat + (Math.random() - 0.45) * DRIFT_AMOUNT, lng: v.lng + (Math.random() - 0.45) * DRIFT_AMOUNT }
-            : v
-        )
-      );
-    }, SIMULATION_INTERVAL_MS);
-
-    return () => {
-      clearInterval(simInterval);
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   // Init map
@@ -235,6 +238,7 @@ const ParentTracker = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background">
+      <ProximityRingDialog alert={ringingAlert} onDismiss={dismissRing} />
       {/* Full-screen map */}
       <div ref={mapRef} className="absolute inset-0 z-0" style={{ background: "#f8fafc" }} />
 
@@ -284,9 +288,9 @@ const ParentTracker = () => {
         </div>
       )}
 
-      {/* Bottom card — student tracking info */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 safe-area-bottom">
-        <div className="mx-3 mb-3 rounded-2xl bg-background/95 backdrop-blur-xl border border-border shadow-xl overflow-hidden max-h-[40vh] overflow-y-auto">
+      {/* Bottom card — student tracking info (sits above bottom tabs) */}
+      <div className="absolute bottom-16 left-0 right-0 z-10 safe-area-bottom pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-3 mb-2 rounded-2xl bg-background/95 backdrop-blur-xl border border-border shadow-xl overflow-hidden max-h-[36vh] overflow-y-auto">
           <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Navigation className="h-4 w-4 text-primary" />
@@ -321,6 +325,8 @@ const ParentTracker = () => {
           )}
         </div>
       </div>
+
+      <BottomTabs />
     </div>
   );
 };

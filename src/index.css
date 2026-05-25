@@ -6,44 +6,45 @@
 
 @layer base {
   :root {
-    --background: 220 25% 7%;
-    --foreground: 210 20% 92%;
+    /* Figma-inspired light theme — clean white with vivid blue */
+    --background: 0 0% 100%;
+    --foreground: 220 25% 12%;
 
-    --card: 220 22% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
 
-    --popover: 220 22% 10%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
 
-    --primary: 38 92% 50%;
-    --primary-foreground: 220 25% 7%;
+    --primary: 207 89% 54%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 16%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 220 25% 12%;
 
-    --muted: 220 18% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 210 30% 96%;
+    --muted-foreground: 215 16% 46%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 25% 7%;
+    --accent: 207 89% 54%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 18% 18%;
-    --input: 220 18% 18%;
-    --ring: 38 92% 50%;
+    --border: 215 25% 91%;
+    --input: 215 25% 91%;
+    --ring: 207 89% 54%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --sidebar-background: 220 22% 10%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 38 92% 50%;
-    --sidebar-primary-foreground: 220 25% 7%;
-    --sidebar-accent: 220 18% 14%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 220 18% 18%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 25% 12%;
+    --sidebar-primary: 207 89% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 30% 96%;
+    --sidebar-accent-foreground: 220 25% 12%;
+    --sidebar-border: 215 25% 91%;
+    --sidebar-ring: 207 89% 54%;
 
     /* Custom tokens */
     --glow-amber: 38 92% 50%;
